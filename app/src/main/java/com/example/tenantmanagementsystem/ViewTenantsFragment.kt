@@ -3,15 +3,17 @@ package com.example.tenantmanagementsystem
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.content.Intent
+import android.net.Uri
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.tenantmanagementsystem.databinding.FragmentViewTenantsBinding
-
+import androidx.navigation.fragment.navArgs
 class ViewTenantsFragment : Fragment() {
 
     private var _binding: FragmentViewTenantsBinding? = null
     private val binding get() = _binding!!
-
+    private val args: ViewTenantsFragmentArgs by navArgs()
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -24,8 +26,34 @@ class ViewTenantsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.newTenantGroup.visibility = View.GONE
+        // The tenant sent from Add Tenant, or null if we came from the Dashboard
+        // (newTenant  ←  <argument android:name="newTenant"> in nav_graph.xml)
+        val newTenant = args.newTenant
 
+        // DATA BINDING: give it to <variable name="tenant"> in the layout.
+        // newTenantTextView shows @{tenant.summary()}, so it updates itself
+        binding.tenant = newTenant
+
+        // No new tenant? Hide "Just added", the box and the Call button together
+        // newTenantGroup  ←  the <Group> in fragment_view_tenants.xml
+        if (newTenant == null) {
+            binding.newTenantGroup.visibility = View.GONE
+        }
+        if (newTenant == null) {
+
+            binding.newTenantGroup.visibility = View.GONE
+        }
+        binding.callButton.setOnClickListener {
+
+            if (newTenant != null) {
+
+                val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${newTenant.phone}"))
+
+                startActivity(intent)
+            }
+        }
+
+        // Show every saved tenant as text, one after another
         val tenants = TenantRepository.tenants
 
         if (tenants.isEmpty()) {
